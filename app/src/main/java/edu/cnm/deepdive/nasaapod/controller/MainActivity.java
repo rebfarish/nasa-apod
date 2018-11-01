@@ -6,7 +6,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -33,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
 
   private static final String DATE_FORMAT = "yyyy-MM-dd";
-  private static final String CALENDAT_KEY = "calendar";
+  private static final String CALENDAR_KEY = "calendar";
   private static final String APOD_KEY = "apod";
 
   private WebView webView;
@@ -52,6 +51,13 @@ public class MainActivity extends AppCompatActivity {
     setupService();
     setupUI();
     setupDefaults(savedInstanceState);
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putLong(CALENDAR_KEY, calendar.getTimeInMillis());
+    outState.putParcelable(APOD_KEY, apod);
   }
 
   private void setupWebView() {
@@ -102,8 +108,17 @@ public class MainActivity extends AppCompatActivity {
 
   private void setupDefaults(Bundle savedInstanceState){
     calendar = Calendar.getInstance();
-    //TODO check for savedInstanceState
-    new ApodTask().execute();
+    if(savedInstanceState != null){
+      calendar.setTimeInMillis(savedInstanceState.getLong(CALENDAR_KEY,
+          calendar.getTimeInMillis()));
+      apod = savedInstanceState.getParcelable(APOD_KEY);
+    }
+    if(apod!= null){
+      progressSpinner.setVisibility(View.VISIBLE);
+      webView.loadUrl(apod.getUrl());
+    }else{
+      new ApodTask().execute();
+    }
   }
 
   private void pickDate(){
